@@ -42,6 +42,31 @@
   function qS(str){return document.querySelector(str);}
   function qSA(str){return document.querySelectorAll(str);}
 
+  /**
+ * Tries to Parse JSON
+ * @param  {String} jsonString String to Parse
+ * @return {boolean}            false if cannot parse
+ * @return {object}             the parsed JSON Object
+ *
+ * @copied from: http://stackoverflow.com/a/20392392/1306046
+ */
+var tryParseJSON = function (jsonString) {
+    try {
+        var o = JSON.parse(jsonString);
+
+        // Handle non-exception-throwing cases:
+        // Neither JSON.parse(false) or JSON.parse(1234) throw errors, hence the type-checking,
+        // but... JSON.parse(null) returns 'null', and typeof null === "object",
+        // so we must check for that, too.
+        if (o && typeof o === "object" && o !== null) {
+            return o;
+        }
+    }
+    catch (e) { }
+
+    return false;
+};
+
   var additional_nutrients = 0;
 
   var Ajax = new XMLHttpRequest();
@@ -97,21 +122,24 @@
     Ajax.onreadystatechange = function () {
       if (Ajax.readyState == 4){
         //Check JSON response and do stuffs accordingly.
+        alert(Ajax.responseText);
       }
     }
     //do preparations to create json
-    var frm = qS('form');
+    //var frm = qS('form');
     var a = {
       "food_name":document.getElementById('food_name').value,
       "food_type":document.getElementById('food_type').value,
-      "need_to_cook":document.getElementById('need_to_cook').value,
-      "nutrients":{
-
-      }
+      "need_to_cook":document.getElementById('need_to_cook').checked,
+      "nutrients":[tryParseJSON("{\""+qS('#nutrient_name_req').value + "\":\""+qS('#nutrient_quantity_req').value+"\"}")]
     };
 
+    for(var i = 0; i<additional_nutrients; i++){
+      a.nutrients.push(tryParseJSON("{\""+qS('#nutrient_name_'+i).value+"\":\""+qS('#nutrient_quantity_'+i).value + "\"}"));
+    }
+
     Ajax.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    Ajax.send("send_param=<json_content>");
+    Ajax.send("send_param="+JSON.stringify(a));
   }
 </script>
 </html>
